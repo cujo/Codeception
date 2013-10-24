@@ -52,6 +52,9 @@ class Phalcon1 extends \Codeception\Util\Framework
             if (isset($this->di['db'])) {
                 $di['db'] = $this->di['db'];
             }
+            if (isset($this->di['session'])) {
+                $di['session'] = $this->di['session'];
+            }
             return $application;
         });
 
@@ -61,6 +64,9 @@ class Phalcon1 extends \Codeception\Util\Framework
         }
 
         $this->di = $application->getDi();
+        if (isset($this->di['session'])) {
+            $this->di['session'] = new Sess();
+        }
         \Phalcon\DI::reset();
         \Phalcon\DI::setDefault($this->di);
 
@@ -80,5 +86,52 @@ class Phalcon1 extends \Codeception\Util\Framework
 
         $this->di = null;
         \Phalcon\DI::reset();
+    }
+}
+
+class Sess extends \Phalcon\Session\Adapter implements \Phalcon\Session\AdapterInterface
+{
+    private $isStarted = true;
+    private $data = array();
+
+    public function start()
+    {
+        $this->isStarted = true;
+    }
+
+    public function get($index, $defaultValue = null)
+    {
+        return isset($this->data[$index]) ? $this->data[$index] : $defaultValue;
+    }
+
+    public function set($index, $value)
+    {
+        $this->data[$index] = $value;
+    }
+
+    public function has($index)
+    {
+        return isset($this->data[$index]);
+    }
+
+    public function remove($index)
+    {
+        unset($this->data[$index]);
+    }
+
+    public function getId()
+    {
+        return 'test';
+    }
+
+    public function isStarted()
+    {
+        return $this->isStarted;
+    }
+
+    public function destroy()
+    {
+        $this->isStarted = false;
+        $this->data = array();
     }
 }
